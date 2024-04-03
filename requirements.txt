@@ -50,7 +50,7 @@ sentencepiece==0.1.99
 SQLAlchemy==2.0.25
 starlette==0.35.1
 streamlit==1.30.0
-subprocess
+
 threadpoolctl==3.2.0
 tiktoken==0.5.2
 timm==0.9.12
