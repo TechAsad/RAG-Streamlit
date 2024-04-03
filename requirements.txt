@@ -41,7 +41,7 @@ requests==2.31.0
 rich==13.7.0
 rpds-py==0.17.1
 rsa==4.9
-safetensors==0.4.1
+
 
 scipy==1.11.4
 sentence-transformers==2.2.2
@@ -61,6 +61,5 @@ unstructured==0.12.0
 unstructured-client==0.15.2
 unstructured-inference==0.7.21
 unstructured.pytesseract==0.3.12
-uvicorn==0.26.0
-wikipedia==1.4.0
 
+google-generativeai
