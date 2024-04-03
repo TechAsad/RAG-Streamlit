@@ -127,95 +127,28 @@ class Document:
 
 @st.cache_resource(show_spinner=False)
 def process_pdf_docx(path):
-    with st.spinner(text=f"Embedding Your Files from '{path}' "):
-    
-        files = load_files_from_folder(path)
-        # Read text from the uploaded PDF file
-        data = []
-        for file in files:
-            
+    try:
+        with st.spinner(text=f"Embedding Your Files from '{path}' "):
         
-            if file.lower().endswith(".pdf"):
-
+            files = load_files_from_folder(path)
+            # Read text from the uploaded PDF file
+            data = []
+            for file in files:
                 
-                loader = PyPDFLoader(file_path=file)
-                documents = loader.load()
-                text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
-                data += text_splitter.split_documents(documents)
-
-
-            if file.lower().endswith(".csv"):
-                
-               
-                loader = CSVLoader(file_path=file, encoding="utf-8", csv_args={
-                            'delimiter': ','})
-                documents = loader.load()
-                
-                text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
-    
-                data += text_splitter.split_documents(documents)
-                
-          
             
-            if file.lower().endswith(".json"):
-                
-               
-                loader = JSONLoader(
-                file_path=file,
-                jq_schema='.',
-                text_content=False)
-                documents = loader.load()
-                print(documents)
-                text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
-    
-                data += text_splitter.split_documents(documents)
-                
-            if file.lower().endswith(".docx"):
+                if file.lower().endswith(".pdf"):
 
-               
-                loader = UnstructuredWordDocumentLoader(file_path=file)
-                documents = loader.load()
-                text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
-
-                data += text_splitter.split_documents(documents)
-            
-
-        embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-   
-
-        vectorstore = FAISS.from_documents(data, embeddings)
-        #vectorstore.save_local("./faiss")
-        return vectorstore
-
-
-@st.cache_resource(show_spinner=False)
-def process_uploaded_files(uploaded_file):
-    with st.spinner(text="Embedding Your Files"):
-
-        # Read text from the uploaded PDF file
-        data = []
-        for file in uploaded_file:
-            split_tup = os.path.splitext(file.name)
-            file_extension = split_tup[1]
-        
-            if file_extension == ".pdf":
-
-                with tempfile.NamedTemporaryFile(delete=False) as tmp_file1:
-                    tmp_file1.write(file.getvalue())
-                    tmp_file_path1 = tmp_file1.name
-                    loader = PyPDFLoader(file_path=tmp_file_path1)
+                    
+                    loader = PyPDFLoader(file_path=file)
                     documents = loader.load()
                     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
                     data += text_splitter.split_documents(documents)
 
 
-            if file_extension == ".csv":
+                if file.lower().endswith(".csv"):
+                    
                 
-                with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-                    tmp_file.write(file.getvalue())
-                    tmp_file_path = tmp_file.name
-
-                    loader = CSVLoader(file_path=tmp_file_path, encoding="utf-8", csv_args={
+                    loader = CSVLoader(file_path=file, encoding="utf-8", csv_args={
                                 'delimiter': ','})
                     documents = loader.load()
                     
@@ -223,29 +156,106 @@ def process_uploaded_files(uploaded_file):
         
                     data += text_splitter.split_documents(documents)
                     
-                    
             
-            if file_extension == ".docx":
+                
+                if file.lower().endswith(".json"):
+                    
+                
+                    loader = JSONLoader(
+                    file_path=file,
+                    jq_schema='.',
+                    text_content=False)
+                    documents = loader.load()
+                    print(documents)
+                    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
+        
+                    data += text_splitter.split_documents(documents)
+                    
+                if file.lower().endswith(".docx"):
 
-                with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-                    tmp_file.write(file.getvalue())
-                    tmp_file_path = tmp_file.name
-                    loader = UnstructuredWordDocumentLoader(file_path=tmp_file_path)
+                
+                    loader = UnstructuredWordDocumentLoader(file_path=file)
                     documents = loader.load()
                     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
 
                     data += text_splitter.split_documents(documents)
                 
 
+            embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    
+
+            vectorstore = FAISS.from_documents(data, embeddings)
+            #vectorstore.save_local("./faiss")
+            return vectorstore
+    except Exception as e:
         
-        embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-   
+            
+        st.warning(f"Sorry, the path '{path}' does not exist.")
 
-        # Create a FAISS index from texts and embeddings
 
-        vectorstore = FAISS.from_documents(data, embeddings)
-        #vectorstore.save_local("./faiss")
-        return vectorstore
+@st.cache_resource(show_spinner=False)
+def process_uploaded_files(uploaded_file):
+    try:
+        with st.spinner(text="Embedding Your Files"):
+
+            # Read text from the uploaded PDF file
+            data = []
+            for file in uploaded_file:
+                split_tup = os.path.splitext(file.name)
+                file_extension = split_tup[1]
+            
+                if file_extension == ".pdf":
+
+                    with tempfile.NamedTemporaryFile(delete=False) as tmp_file1:
+                        tmp_file1.write(file.getvalue())
+                        tmp_file_path1 = tmp_file1.name
+                        loader = PyPDFLoader(file_path=tmp_file_path1)
+                        documents = loader.load()
+                        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
+                        data += text_splitter.split_documents(documents)
+
+
+                if file_extension == ".csv":
+                    
+                    with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+                        tmp_file.write(file.getvalue())
+                        tmp_file_path = tmp_file.name
+
+                        loader = CSVLoader(file_path=tmp_file_path, encoding="utf-8", csv_args={
+                                    'delimiter': ','})
+                        documents = loader.load()
+                        
+                        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
+            
+                        data += text_splitter.split_documents(documents)
+                        
+                        
+                
+                if file_extension == ".docx":
+
+                    with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+                        tmp_file.write(file.getvalue())
+                        tmp_file_path = tmp_file.name
+                        loader = UnstructuredWordDocumentLoader(file_path=tmp_file_path)
+                        documents = loader.load()
+                        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
+
+                        data += text_splitter.split_documents(documents)
+                    
+
+            
+            embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    
+
+            # Create a FAISS index from texts and embeddings
+
+            vectorstore = FAISS.from_documents(data, embeddings)
+            #vectorstore.save_local("./faiss")
+            return vectorstore
+    except Exception as e:
+        
+            
+        st.warning(f"Sorry, the path '{path}' does not exist.")
 
 
 
