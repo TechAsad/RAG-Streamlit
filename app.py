@@ -4,6 +4,7 @@ import streamlit as st
 from PyPDF2 import PdfReader
 import langchain
 from textwrap import dedent
+import json
 
 from langchain_community.callbacks import StreamlitCallbackHandler
 from langchain.memory import ConversationBufferMemory
@@ -113,6 +114,16 @@ def load_files_from_folder(folder_path):
     # Return the list of files
     return files
 
+class Document:
+    def __init__(self, page_content, metadata):
+        self.page_content = page_content
+        self.metadata = metadata
+
+    def __str__(self):
+        page_content_str = self.page_content
+        metadata_str =self.metadata
+        return f"[Document(page_content={page_content_str}, metadata={metadata_str})]"
+
 
 @st.cache_resource(show_spinner=False)
 def process_pdf_docx(path):
@@ -154,7 +165,7 @@ def process_pdf_docx(path):
                 jq_schema='.',
                 text_content=False)
                 documents = loader.load()
-                
+                print(documents)
                 text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
     
                 data += text_splitter.split_documents(documents)
@@ -170,14 +181,72 @@ def process_pdf_docx(path):
             
 
         embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-        #embeddings = GooglePalmEmbeddings()
-        #embeddings = OpenAIEmbeddings()
+   
+
+        vectorstore = FAISS.from_documents(data, embeddings)
+        #vectorstore.save_local("./faiss")
+        return vectorstore
+
+
+@st.cache_resource(show_spinner=False)
+def process_uploaded_files(uploaded_file):
+    with st.spinner(text="Embedding Your Files"):
+
+        # Read text from the uploaded PDF file
+        data = []
+        for file in uploaded_file:
+            split_tup = os.path.splitext(file.name)
+            file_extension = split_tup[1]
+        
+            if file_extension == ".pdf":
+
+                with tempfile.NamedTemporaryFile(delete=False) as tmp_file1:
+                    tmp_file1.write(file.getvalue())
+                    tmp_file_path1 = tmp_file1.name
+                    loader = PyPDFLoader(file_path=tmp_file_path1)
+                    documents = loader.load()
+                    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
+                    data += text_splitter.split_documents(documents)
+
+
+            if file_extension == ".csv":
+                
+                with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+                    tmp_file.write(file.getvalue())
+                    tmp_file_path = tmp_file.name
+
+                    loader = CSVLoader(file_path=tmp_file_path, encoding="utf-8", csv_args={
+                                'delimiter': ','})
+                    documents = loader.load()
+                    
+                    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
+        
+                    data += text_splitter.split_documents(documents)
+                    
+                    
+            
+            if file_extension == ".docx":
+
+                with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+                    tmp_file.write(file.getvalue())
+                    tmp_file_path = tmp_file.name
+                    loader = UnstructuredWordDocumentLoader(file_path=tmp_file_path)
+                    documents = loader.load()
+                    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
+
+                    data += text_splitter.split_documents(documents)
+                
+
+        
+        embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+   
 
         # Create a FAISS index from texts and embeddings
 
         vectorstore = FAISS.from_documents(data, embeddings)
         #vectorstore.save_local("./faiss")
         return vectorstore
+
 
 
 
@@ -200,6 +269,10 @@ def get_llama_names():
 # Get the list of names
 #llm_names = get_llama_names()
 
+with st.sidebar:
+    uploaded_file =  st.file_uploader("Upload your files",
+    help="Multiple Files are Supported",
+    type=['pdf', 'docx', 'csv'], accept_multiple_files= True)
 
 
 with st.sidebar:
@@ -217,6 +290,8 @@ with st.sidebar:
     #else:
     #    st.warning("Please Select the LLM")
     path =  st.text_input("Enter RAG Directory", placeholder="Enter")
+
+
 
 
 #llm_model = selected_llm
@@ -239,9 +314,24 @@ if path:
     else: 
         st.success(f"{total_files} file is embedded from {path}")
 else:
-    st.warning("Please Provide Directory Path for RAG")
-    db = None
     
+    db = None
+
+
+if uploaded_file:
+    db2= process_uploaded_files(uploaded_file)
+    
+    total_files= len(uploaded_file)
+    if total_files>1:
+        st.success(f"{total_files} files are embedded from uploaded files")
+    else: 
+        st.success(f"{total_files} file is embedded from uploaded file") 
+else:
+    
+    db2 = None
+
+if uploaded_file and path is None:
+    st.warning("Please Provide Directory Path for RAG")
 
 def main():
     
@@ -284,7 +374,7 @@ def main():
                 with st.spinner('Assistant...'):
                     chatbot= RAGbot
                     
-                    response = chatbot.run(prompt, memory, db)
+                    response = chatbot.run(prompt, memory, db, db2)
                    
                         
                     st.session_state.messages.append({"role": "Assistant", "content": response})

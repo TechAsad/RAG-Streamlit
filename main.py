@@ -54,9 +54,8 @@ def generate_question(original_query, memory, llm_model):
 class RAGbot:
       
     
-    def run(prompt, memory, db): #need to pass user query and memory variable.
+    def run(prompt, memory, db, db2): #need to pass user query and memory variable.
         
-          
         
         #try:  
                
@@ -71,41 +70,8 @@ class RAGbot:
                       'what is up', "what's up", 'what is cracking', "what's cracking", 'what is good', "what's good",
                       'what is happening', "what's happening", 'what is new', "what's new", 'what is neww', "g’day", 'howdy' 'ji']
           compliment = ['thank you', 'thanks', 'thank' 'thanks a lot', 'thanks a bunch', 'great', 'ok', 'ok thanks', 'okay', 'great', 'good' 'awesome', 'nice']
-                      
-          prompt_template =dedent(r"""
-            Use the following pieces of context to answer the question at the end. Answer in the same language of the question.
-            You are a helpful assitant to help user with question. 
-            Answer the QUESTION truthfully and to the point.
             
-            Ensure that your answers are directly related to the user's query and chat history.
-           
-            context:
-            
-            
-            {context}
-            
-            ---------
-
-            chat history: 
-            ---------
-            {chat_history}
-            ---------
-
-            QUESTION: 
-            {question}
-
-            ANSWER: 
-            """)
-              
-              
-
-          PROMPT = PromptTemplate(
-                  template=prompt_template, input_variables=[ "context","question", "chat_history"]
-              )
-
-            
-          chain = load_qa_chain(llm=llm, verbose= True, prompt = PROMPT,memory=memory, chain_type="stuff")
-                  
+             
         
         
           if prompt.lower() in greetings:
@@ -120,32 +86,60 @@ class RAGbot:
               
             return response
           else:
-            
-            if db is not None:
-              #stand_alone = generate_question(prompt, memory, llm_model)
-              
-              docs =db.similarity_search(prompt, 6)
-              print(docs)
-              print(prompt)   
-              
-              response = chain.invoke(input={"input_documents":docs, "question":prompt})
-              return response["output_text"]
-            else:
-                 
-                prompt_chat = ChatPromptTemplate.from_template("you are a helpful assistant. Answer the QUESTION truthfully and to the point. \n\n Chat History: {chat_history} \n\n QUESTION: {question}  \n\n OUTPUT :")
-                chain2 = prompt_chat | llm
-                response = chain2.invoke({"chat_history": memory, "question": prompt}).content
+           
+              if db is not None:
+                #stand_alone = generate_question(prompt, memory, llm_model)
                 
+                docs_org =db.similarity_search(prompt, 6)
+               
+                docs= format_docs(docs_org)  
+              else:
+                docs = None
+                
+                
+              if db2 is not None:
+                  uploaded_docs =db2.similarity_search(prompt, 6)
+                  uploaded= format_docs(uploaded_docs)
+              else:
+                  uploaded = None
+              
+              prompt_template =dedent(r"""
+            Use the following pieces of context to answer the question at the end. Answer in the same language of the question.
+            You are a helpful assitant to help user with question. 
+            Answer the QUESTION truthfully and to the point.
+            
+            Ensure that your answers are directly related to the user's query and chat history.
+           
+            context:
+            
+            
+            {input_documents}
+            
+            {uploaded_documents}
+            ---------
+
+            chat history: 
+            ---------
+            {chat_history}
+            ---------
+
+            QUESTION: 
+            {question}
+
+            ANSWER: 
+            """)
+              
+              prompt_chat1= ChatPromptTemplate.from_template(prompt_template)
+              chain1 = prompt_chat1 | llm
+              response = chain1.invoke({"input_documents":docs, "uploaded_documents": uploaded,"chat_history": memory, "question":prompt}).content
+              #response = chain.invoke(input={"input_documents":docs, "uploaded_documents": uploaded, "question":prompt})
+              return response
           
-              
-                
-              
-                return response
-        
-        #except Exception as e:
-            
-         #   "Sorry, the question is irrelevant or the bot crashed"
-    
+      
+      #except Exception as e:
+          
+        #   "Sorry, the question is irrelevant or the bot crashed"
+  
 
 
 if __name__ == "__main__":
