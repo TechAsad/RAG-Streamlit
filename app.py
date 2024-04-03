@@ -116,7 +116,7 @@ def load_files_from_folder(folder_path):
 
 @st.cache_resource(show_spinner=False)
 def process_pdf_docx(path):
-    with st.spinner(text=f"Embedding Your Files forom '{path}' "):
+    with st.spinner(text=f"Embedding Your Files from '{path}' "):
     
         files = load_files_from_folder(path)
         # Read text from the uploaded PDF file
@@ -281,7 +281,7 @@ def main():
                 with st.spinner('Assistant...'):
                     chatbot= RAGbot
                     
-                    response = chatbot.run(prompt, memory, llm_model, db)
+                    response = chatbot.run(prompt, memory, db)
                    
                         
                     st.session_state.messages.append({"role": "Assistant", "content": response})

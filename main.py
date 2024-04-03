@@ -2,7 +2,7 @@ import os
 import langchain
 from textwrap import dedent
 import pandas as pd
-
+import streamlit as st
 from langchain_openai import ChatOpenAI
 from langchain.vectorstores.faiss import FAISS
 from langchain.prompts import PromptTemplate
@@ -26,7 +26,11 @@ def select_model(llm_model):
   #install Ollama application and run with 'ollama run 'model name''. for example: ollama run llama2, ollama run solar
   return ollama_llm
 
+google_api_key = st.secrets["GOOGLE_API_KEY"]
+#api_key2 = st.secrets["OPENAI_API_KEY"]
+os.environ["GOOGLE_API_KEY"] = google_api_key
 
+llm = ChatGooglePalm(temperature=0.1)
 
 def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
@@ -34,7 +38,7 @@ def format_docs(docs):
 #for RAG fusion
 def generate_question(original_query, memory, llm_model):
     
-    model =select_model(llm_model)
+    model =llm
 
     messages = (f"""Create a SINGLE standalone question. your output should include only standalone question. The question should be based on the New question plus the Chat history. 
     If the New question can stand on its own you should return the New question. Do not do any reasoning or extra words. New question: \"{original_query}\", Chat history: \"{memory}\"."""
@@ -50,11 +54,9 @@ def generate_question(original_query, memory, llm_model):
 class RAGbot:
       
     
-    def run(prompt, memory, llm_model, db): #need to pass user query and memory variable.
+    def run(prompt, memory, db): #need to pass user query and memory variable.
         
-          if llm_model is None:
-            llm_model = "llama2"
-          llm = select_model(llm_model)
+          
         
         #try:  
                
@@ -120,11 +122,11 @@ class RAGbot:
           else:
             
             if db is not None:
-              stand_alone = generate_question(prompt, memory, llm_model)
+              #stand_alone = generate_question(prompt, memory, llm_model)
               
-              docs =db.similarity_search(stand_alone, 6)
+              docs =db.similarity_search(prompt, 6)
               print(docs)
-              print(stand_alone)   
+              print(prompt)   
               
               response = chain.invoke(input={"input_documents":docs, "question":prompt})
               return response["output_text"]
@@ -132,7 +134,7 @@ class RAGbot:
                  
                 prompt_chat = ChatPromptTemplate.from_template("you are a helpful assistant. Answer the QUESTION truthfully and to the point. \n\n Chat History: {chat_history} \n\n QUESTION: {question}  \n\n OUTPUT :")
                 chain2 = prompt_chat | llm
-                response = chain2.invoke({"chat_history": memory, "question": prompt})
+                response = chain2.invoke({"chat_history": memory, "question": prompt}).content
                 
           
               
