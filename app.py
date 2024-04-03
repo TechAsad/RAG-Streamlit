@@ -21,7 +21,7 @@ from langchain.document_loaders.json_loader import JSONLoader
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
 from langchain.vectorstores.faiss import FAISS
-import chromadb
+
 from langchain_community.embeddings.sentence_transformer import SentenceTransformerEmbeddings
 
 
