@@ -1,0 +1,17 @@
+{
+    "event": {
+        "event_id": "ocd-division/country:kw",
+        "event_name": "Concert",
+        "event_location": "Country",
+        "event_lat": 102.63,
+        "event_long": 434.32,
+        "event_type": "Music"
+    },
+    "event_details": {
+        "event_description": "long string goes here",
+        "event_date": "2024-08-24",
+        "event_time_start": "13:00:00",
+        "event_time_end": "18:00:00",
+        "event_venue": "Outdoor Amphitheater"
+    }
+}

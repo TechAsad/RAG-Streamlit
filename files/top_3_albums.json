@@ -1,0 +1,26 @@
+[
+  {
+    "Number": 1,
+    "Year": 2024,
+    "Album": "This is Blue",
+    "Band": "Spudder Type",
+    "Genre": "Jazz",
+    "Subgenre": "Latin Jazz"
+  },
+  {
+    "Number": 2,
+    "Year": 2023,
+    "Album": "This is Red",
+    "Band": "Shiver Time",
+    "Genre": "Soul",
+    "Subgenre": "Rhythm and Blues, Funk"
+  },
+  {
+    "Number": 3,
+    "Year": 2022,
+    "Album": "This is Green",
+    "Band": "Keith Nimma",
+    "Genre": "Pop",
+    "Subgenre": "Adult Rock, Pop Rock"
+  }
+]
