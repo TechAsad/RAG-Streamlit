@@ -169,12 +169,15 @@ def process_pdf_docx(path):
                 data += text_splitter.split_documents(documents)
             
 
-        embeddings = SentenceTransformerEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2",model_kwargs = {'device': 'cpu'}) #'mps' for Mac M1/M2 or 'cpu'
-        vectordb = FAISS.from_documents(documents=data, embedding=embeddings)
-        
-        
-       
-        return vectordb
+        embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+        #embeddings = GooglePalmEmbeddings()
+        #embeddings = OpenAIEmbeddings()
+
+        # Create a FAISS index from texts and embeddings
+
+        vectorstore = FAISS.from_documents(data, embeddings)
+        #vectorstore.save_local("./faiss")
+        return vectorstore
 
 
 
