@@ -20,7 +20,7 @@ from langchain.document_loaders.pdf import PyPDFLoader
 from langchain.document_loaders.json_loader import JSONLoader
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
-from langchain_community.vectorstores.chroma import Chroma
+from langchain.vectorstores.faiss import FAISS
 import chromadb
 from langchain_community.embeddings.sentence_transformer import SentenceTransformerEmbeddings
 
@@ -170,7 +170,7 @@ def process_pdf_docx(path):
             
 
         embeddings = SentenceTransformerEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2",model_kwargs = {'device': 'cpu'}) #'mps' for Mac M1/M2 or 'cpu'
-        vectordb = Chroma.from_documents(documents=data, embedding=embeddings)
+        vectordb = FAISS.from_documents(documents=data, embedding=embeddings)
         
         
        
