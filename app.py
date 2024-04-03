@@ -319,8 +319,13 @@ if path:
     db = process_pdf_docx(path)
     files = load_files_from_folder(path)
     total_files= len(files)
+    st.sidebar.subheader(f"Embedded Files form '{path}'")
+    for file_path in files:
+        file_name = os.path.basename(file_path)
+        st.sidebar.write(file_name)
     if len(files)>1:
         st.success(f"{total_files} files are embedded from {path}")
+        
     else: 
         st.success(f"{total_files} file is embedded from {path}")
 else:
