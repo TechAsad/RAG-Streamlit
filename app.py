@@ -195,28 +195,28 @@ def get_llama_names():
     return names
 
 # Get the list of names
-llm_names = get_llama_names()
+#llm_names = get_llama_names()
 
 
 
 with st.sidebar:
  
-    st.sidebar.subheader("Select LLM")
+    #st.sidebar.subheader("Select LLM")
     
-    selected_llm = st.selectbox(
-    "Available LLMs",
-    llm_names,
-    index=None,
-    placeholder="Select..."
-)   
-    if selected_llm is not None:
-        st.success(f"Selected LLM: {selected_llm}")
-    else:
-        st.warning("Please Select the LLM")
+    #selected_llm = st.selectbox(
+    #"Available LLMs",
+    #llm_names,
+    #index=None,
+    #placeholder="Select..."
+#)   
+    #if selected_llm is not None:
+    #    st.success(f"Selected LLM: {selected_llm}")
+    #else:
+    #    st.warning("Please Select the LLM")
     path =  st.text_input("Enter RAG Directory", placeholder="Enter")
 
 
-llm_model = selected_llm
+#llm_model = selected_llm
 
 
 if 'history' not in st.session_state:  
