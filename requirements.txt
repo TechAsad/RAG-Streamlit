@@ -1,6 +1,7 @@
 bs4==0.0.2
 cachetools==5.3.2
 faiss-cpu
+jq
 dataclasses-json==0.6.3
 duckduckgo_search==4.2
 fastapi==0.109.0
